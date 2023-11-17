@@ -1,227 +1,93 @@
-# Python program to implement Playfair Cipher
+# Create a 5x5 matrix using a secret key
+def create_matrix(key):
+    key = key.upper()
+    matrix = [[0 for i in range(5)] for j in range(5)]
+    letters_added = []
+    row = 0
+    col = 0
 
-# Function to convert the string to lowercase
-
-
-def toLowerCase(text):
-	return text.lower()
-
-# Function to remove all spaces in a string
-
-
-def removeSpaces(text):
-	newText = ""
-	for i in text:
-		if i == " ":
-			continue
-		else:
-			newText = newText + i
-	return newText
-
-# Function to group 2 elements of a string
-# as a list element
-
-
-def Diagraph(text):
-	Diagraph = []
-	group = 0
-	for i in range(2, len(text), 2):
-		Diagraph.append(text[group:i])
-
-		group = i
-	Diagraph.append(text[group:])
-	return Diagraph
-
-# Function to fill a letter in a string element
-# If 2 letters in the same string matches
-
-
-def FillerLetter(text):
-	k = len(text)
-	if k % 2 == 0:
-		for i in range(0, k, 2):
-			if text[i] == text[i+1]:
-				new_word = text[0:i+1] + str('x') + text[i+1:]
-				new_word = FillerLetter(new_word)
-				break
-			else:
-				new_word = text
-	else:
-		for i in range(0, k-1, 2):
-			if text[i] == text[i+1]:
-				new_word = text[0:i+1] + str('x') + text[i+1:]
-				new_word = FillerLetter(new_word)
-				break
-			else:
-				new_word = text
-	return new_word
-
-
-list1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm',
-		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-
-# Function to generate the 5x5 key square matrix
-
-
-def generateKeyTable(word, list1):
-	key_letters = []
-	for i in word:
-		if i not in key_letters:
-			key_letters.append(i)
-
-	compElements = []
-	for i in key_letters:
-		if i not in compElements:
-			compElements.append(i)
-	for i in list1:
-		if i not in compElements:
-			compElements.append(i)
-
-	matrix = []
-	while compElements != []:
-		matrix.append(compElements[:5])
-		compElements = compElements[5:]
-
-	return matrix
-
-def search(mat, element):
-	for i in range(5):
-		for j in range(5):
-			if(mat[i][j] == element):
-				return i, j
-
-
-def encrypt_RowRule(matr, e1r, e1c, e2r, e2c, k):
-    char1 = ''
-    char2 = ''
-    if k == 0:
-        if e1c == 4:
-            char1 = matr[e1r][0]
+    # Add the key to the matrix
+    for letter in key:
+        if letter not in letters_added:
+            matrix[row][col] = letter
+            letters_added.append(letter)
         else:
-		    char1 = matr[e1r][e1c+1]
-
-	    if e2c == 4:
-		    char2 = matr[e2r][0]
-	    else:
-		    char2 = matr[e2r][e2c+1]
-
-    else:
-        if e1c == 0:
-            char1 = matr[e1r][4]
+            continue
+        if col == 4:
+            col = 0
+            row += 1
         else:
-            char1 = matr[e1r][e1c-1]
+            col += 1
 
-	    if e2c == 0:
-		    char2 = matr[e2r][4]
-	    else:
-		    char2 = matr[e2r][e2c+1]
+    # Add the rest of the alphabet to the matrix
+    # A=65 ... Z=90
+    for letter in range(65, 91):
+        if letter == 74:  # I/J are in the same position
+            continue
+        if chr(letter) not in letters_added:  # Do not add repeated letters
+            letters_added.append(chr(letter))
 
-	return char1, char2
+    # print (len(letters_added), letters_added)
+    index = 0
+    for i in range(5):
+        for j in range(5):
+            matrix[i][j] = letters_added[index]
+            index += 1
+    return matrix
 
+# Add fillers if the same letter is in a pair
+# def separate_same_letters(message):
+#     index = 0
+#     while index < len(message):
+#         l1 = message[index]
+#         if index == len(message) - 1:
+#             message = message + 'X'
+#             index += 2
+#             continue
+#         l2 = message[index + 1]
+#         if l1 == l2:
+#             message = message[:index + 1] + "X" + message[index + 1:]
+#         index += 2
+#     return message
 
-def encrypt_ColumnRule(matr, e1r, e1c, e2r, e2c, k):
-    if k == 0:
-        char1 = ''
-	    if e1r == 4:
-		    char1 = matr[0][e1c]
-	    else:
-		    char1 = matr[e1r+1][e1c]
+# Return the index of a letter in the matrix
+# This will be used to know what rule (1-4) to apply
+def indexOf(letter, matrix):
+    for i in range(5):
+        try:
+            index = matrix[i].index(letter)
+            return (i, index)
+        except:
+            continue
 
-	    char2 = ''
-	    if e2r == 4:
-		    char2 = matr[0][e2c]
-	    else:
-		    char2 = matr[e2r+1][e2c]
-    else:
-        char1 = ''
-	    if e1r == 0:
-		    char1 = matr[0][e1c]
-	    else:
-		    char1 = matr[e1r+1][e1c]
+# Implementation of the playfair cipher
+# If encrypt=True the method will encrypt the message
+# otherwise the method will decrypt
+def playfair(key, message, encrypt=True):
+    inc = 1
+    if encrypt == False:
+        inc = -1
+    matrix = create_matrix(key)
+    message = message.upper()
+    message = message.replace(' ', '')
+    # message = separate_same_letters(message)
+    cipher_text = ''
+    for (l1, l2) in zip(message[0::2], message[1::2]):
+        row1, col1 = indexOf(l1, matrix)
+        row2, col2 = indexOf(l2, matrix)
+        if row1 == row2:  # Rule 2, the letters are in the same row
+            cipher_text += matrix[row1][(col1 + inc) % 5] + matrix[row2][(col2 + inc) % 5]
+        elif col1 == col2:  # Rule 3, the letters are in the same column
+            cipher_text += matrix[(row1 + inc) % 5][col1] + matrix[(row2 + inc) % 5][col2]
+        else:  # Rule 4, the letters are in a different row and column
+            cipher_text += matrix[row1][col2] + matrix[row2][col1]
 
-	    char2 = ''
-	    if e2r == 4:
-		    char2 = matr[0][e2c]
-	    else:
-		    char2 = matr[e2r-1][e2c]
+    return cipher_text
 
-	return char1, char2
-
-
-def encrypt_RectangleRule(matr, e1r, e1c, e2r, e2c):
-	char1 = ''
-	char1 = matr[e1r][e2c]
-
-	char2 = ''
-	char2 = matr[e2r][e1c]
-
-	return char1, char2
-
-
-def encryptByPlayfairCipher(Matrix, plainList):
-	CipherText = []
-	for i in range(0, len(plainList)):
-		c1 = 0
-		c2 = 0
-		ele1_x, ele1_y = search(Matrix, plainList[i][0])
-		ele2_x, ele2_y = search(Matrix, plainList[i][1])
-
-		if ele1_x == ele2_x:
-			c1, c2 = encrypt_RowRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y, 0)
-			# Get 2 letter cipherText
-		elif ele1_y == ele2_y:
-			c1, c2 = encrypt_ColumnRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y, 0)
-		else:
-			c1, c2 = encrypt_RectangleRule(
-				Matrix, ele1_x, ele1_y, ele2_x, ele2_y)
-
-		cipher = c1 + c2
-		CipherText.append(cipher)
-	return CipherText
-
-def decryptbyPlayCipher(Matrix, CipherList):
-    plainText = []
-    for i in range(len(CipherList)):
-        ele1_x, ele1_y = search(Matrix, CipherList[i][0])
-        ele2_x, ele2_y = search(Matrix, CipherList[i][1])
-        if ele1_x == ele2_x:
-            c1, c2 = decrypt_RowRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y, 1)
-			# Get 2 letter cipherText
-		elif ele1_y == ele2_y:
-			c1, c2 = decrypt_ColumnRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y, 1)
-		else:
-			c1, c2 = decrypt_RectangleRule(
-				Matrix, ele1_x, ele1_y, ele2_x, ele2_y)
-
-		cipher = c1 + c2
-		plainText.append(cipher)
-    return plainText
-
-text_Plain = 'instruments'
-text_Plain = removeSpaces(toLowerCase(text_Plain))
-PlainTextList = Diagraph(FillerLetter(text_Plain))
-if len(PlainTextList[-1]) != 2:
-	PlainTextList[-1] = PlainTextList[-1]+'z'
-
-key = "Monarchy"
-print("Key text:", key)
-key = toLowerCase(key)
-Matrix = generateKeyTable(key, list1)
-
-print("Plain Text:", text_Plain)
-CipherList = encryptByPlayfairCipher(Matrix, PlainTextList)
-CipherText = ""
-for i in CipherList:
-	CipherText += i
-print("CipherText:", CipherText)
-CipherTextList = Diagraph(FillerLetter(CipherText))
-if len(CipherTextList[-1]) != 2:
-	CipherTextList[-1] = CipherTextList[-1]+'z'
-PlainList1 = decryptbyPlayCipher(Matrix, CipherTextList)
-PlainText = ""
-for i in PlainList1:
-	PlainText += i
-print("Plain Text:", PlainText)
-
-# This code is Contributed by Boda_Venkata_Nikith
-
+if __name__ == '__main__':
+    # A sample of encryption and decryption
+    print('Encrypting')
+    a = playfair('secret', 'my secret yes')
+    print(a)
+    print('Decrypting')
+    print(playfair('secret', a, False))

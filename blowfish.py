@@ -308,9 +308,9 @@ def driver():
        # k+=1
         #data = temp
     #encrypt_data = int(input("Enter hex string to encrypt: "), 16)
-    encrypt_data = input("Enter string").encode('utf-8')
-    encrypt_data = encrypt_data.hex()
-    encrypt_data = int(encrypt_data, 16)
+    encrypt_data = int(input("Enter string"), 16)
+    # encrypt_data = encrypt_data.hex()
+    # encrypt_data = int(encrypt_data, 16)
     encrypted_data = encryption(encrypt_data)
     print("Encrypted data : ",encrypted_data)
     decrypted_data = decryption(encrypted_data)
@@ -350,7 +350,7 @@ def decryption(data):
     L = L^p[0]
     R = R^p[1]
     decrypted_data1 = (L<<32) ^ R
-    return hex(decrypted_data1)
+    return hex(decrypted_data1)[2:]
 
 driver()
 
