@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <script>
+            function power(x, y, z) {
+                if (z == 1)
+                return x;
+                else
+                return(Math.pow(x, y) % z)
+            }
+            function diffie_hellman() {
+                var G, a, P, b, X, Y;
+                P = document.getElementById("field1").value;
+                G = document.getElementById("field2").value;
+                a = document.getElementById("field3").value;
+                b = document.getElementById("field4").value;
+
+                X = power(G, a, P);
+                Y = power(G, b, P);
+
+                //secret key
+                var ka, kb;
+                ka = power(Y, a, P);
+                kb = power(X, b, P);
+
+                document.getElementById("output1").innerHTML = ka;
+                document.getElementById("output2").innerHTML = kb;
+            }
+        </script>
+        <body>
+            <div style="text-align:center">
+            <input type="text" id="field1">
+            <input type="text" id="field2">
+            <input type="text" id="field3">
+            <input type="text" id="field4">
+            <button onclick="diffie_hellman()">Submit</button>
+            <p>Secret key for User1: <span id="output1"></p>
+            <p>Secret key for User2: <span id="output2"></p>
+            </div>
+        </body>
+    </head>
+</html>
