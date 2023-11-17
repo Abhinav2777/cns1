@@ -166,9 +166,8 @@ def xor(a, b):
         else:
             ans += "1"
     return ans
-def encrypt(pt, rk, rkb):
+def encrypt(pt, rkb):
     pt = hex2bin(pt)
-    print(pt)
     pt = permute(pt, initial_perm, 64)
 
     left = pt[:32]
@@ -198,7 +197,7 @@ def encrypt(pt, rk, rkb):
 
 #pt = input()
 #key = input()
-pt = "123456ABCD132536"
+pt = "123456ABCD132537"
 key = "AABB09182736CCDD"
 key = hex2bin(key)
 
@@ -224,7 +223,7 @@ key_comp = [
             46, 42, 50, 36, 29, 32
             ]
 shift_table = [
-        1, 2, 2, 2, 2, 2, 2, 1, 2, 2,
+        1, 1, 2, 2, 2, 2, 2, 2, 1, 2,
         2, 2, 2, 2, 2, 1
         ]
 #splitting the key
@@ -242,10 +241,10 @@ for i in range(16):
     rk.append(bin2hex(round_key))
 
 print("Encryption: ")
-cipher_text = bin2hex(encrypt(pt, rk, rkb))
+cipher_text = bin2hex(encrypt(pt, rkb))
 print("Encrypted text: ", cipher_text)
 print("Decryption: ")
 rkb_rev = rkb[::-1]
 rk_rev = rk[::-1]
-text = bin2hex(encrypt(cipher_text, rk_rev, rkb_rev))
+text = bin2hex(encrypt(cipher_text, rkb_rev))
 print("Decrypted text : ", text)

@@ -1,33 +1,53 @@
 from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
 
-# Encryption
-def encrypt(plain_text, password):
-    salt = get_random_bytes(AES.block_size)
-    key = PBKDF2(password, salt, dkLen=32, count=1000000)
-    cipher = AES.new(key, AES.MODE_CBC)
-    cipher_text = cipher.encrypt(pad(plain_text.encode(), AES.block_size))
-    return salt + cipher.iv + cipher_text
+def encrypt(plaintext, key):
+    # Generate a random IV
+    iv = get_random_bytes(AES.block_size)
 
-# Decryption
-def decrypt(enc_text, password):
-    salt = enc_text[:AES.block_size]
-    iv = enc_text[AES.block_size:AES.block_size*2]
-    cipher_text = enc_text[AES.block_size*2:]
-    key = PBKDF2(password, salt, dkLen=32, count=1000000)
-    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-    plain_text = unpad(cipher.decrypt(cipher_text), AES.block_size)
-    return plain_text.decode('utf-8')
+    # Convert the key to bytes
+    key = key.encode('utf-8')
 
-# Example usage:
-password = "mysecretkey"
-message = "Hello, AES!"
+    # Create AES object with the IV
+    cipher = AES.new(key, AES.MODE_CBC, iv)
 
-encrypted = encrypt(message, password)
-print(f"Encrypted: {encrypted}")
+    # Pad plaintext to block size
+    padded_plaintext = pad(plaintext.encode('utf-8'), AES.block_size)
 
-decrypted = decrypt(encrypted, password)
-print(f"Decrypted: {decrypted}")
+    # Encrypt padded plaintext
+    ciphertext = cipher.encrypt(padded_plaintext)
 
+    # Concatenate IV and ciphertext for later use in decryption
+    encrypted_message = iv + ciphertext
+
+    return encrypted_message
+
+def decrypt(encrypted_message, key):
+    # Extract IV from the first block
+    iv = encrypted_message[:AES.block_size]
+
+    # Convert the key to bytes
+    key = key.encode('utf-8')
+
+    # Create AES object with the IV
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Decrypt ciphertext (excluding the IV)
+    decrypted_plaintext = cipher.decrypt(encrypted_message[AES.block_size:])
+
+    # Unpad decrypted plaintext
+    unpadded_plaintext = unpad(decrypted_plaintext, AES.block_size)
+    print(type(unpadded_plaintext))
+    return unpadded_plaintext.decode('utf-8')
+
+# Example usage
+plaintext = input()
+key = "password1234567890abcdef"
+
+encrypted_message = encrypt(plaintext, key)
+decrypted_plaintext = decrypt(encrypted_message, key)
+
+print("Original plaintext:", plaintext)
+print("Encrypted message:", encrypted_message)
+print("Decrypted plaintext:", decrypted_plaintext)
